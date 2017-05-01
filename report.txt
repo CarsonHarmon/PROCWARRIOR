@@ -1,0 +1,25 @@
+Step 0, brainstorming: 
+
+When we were first assigned the project we did not know much about it. We decided that it would be best to brainstorm some ideas before the lab was offically released. While looking through BSD documentation we found a data structure maintained by the kernel called the allproc list. This is the list the kernel uses to keep track of processes real time. We thought if we could access this list successfuly it we could kill processes when they spawn. 
+
+In the end accessing kernel data structures requires root access which we did nto have. 
+
+Step 1, dissassembly: 
+
+Once the lab was offically released we decided to dissasemble and reverse freehit and choi. There were some hints given in the lab handout but before we decided if they were helpful we wanted to know how the two programs provided function.We gained some very useful information from both freehit and choi. The two programs both use the same setup to block all signals possible. Both programs also only use the kill signal. This means that our program would not have to use the sigaction set up, and by not doing so we could get an advantage over those programs. 
+Step 2, pkill source code: 
+
+One of the reccomedations on piazza was to look up the pkill source code. Pkill uses kvm_openfiles to access kernel memory, and uses kvm_getprocs to access a process list from the kernel. We decided to use this in our program. 
+
+Step 3, attempting arena 1. 
+
+Defeating arena 1 was difficult at first as we had many bad strategies. At first we tried to alter scheduling to turn off round robin to make only our process run. Another idea we had was when we see an enemy process, fork, and have that cihld join their process group, and do a kill(0, SIGKILL) to kill the entire group. This is way to slow, and might not pay off in the long run. We considered using threads but threads do not show up in the PS list and have high overhead. 
+
+In the end we just used kvm_openfiles and kvm_getprocs in a loop to kill all the processes that werent ours. By using the ki_comm field in the ki_info struct we can see that the process belongs to us. Anything not related to us was killed. This simple strategy was much more effective than the previous ones because it starts killing enemies very quickly. 
+
+Step 4, arena 2
+The difference between arena 1 and arena 2 is that we need to find a unique way to identify what our processes are. We tried 3 different approaches. 
+
+The first approach was to use the size field in the ki_info struct. We thought that the size would remain constant among iterations of the program and as such it would allow us to know what is ours. This did not prove to be true, for reasons we still do not know. Our second attempt was to use shared memory. We created a new shared memory block and stored friendly PID's at baseAddr+pid. If there was existant data at baseAddr+pid then we would not kill the process. Shared memory had many problems, it was very slow fetching the page, and sometimes we still killed ourself. Our third approach was using command line arguments, which was very fast. For arena 2 we could take the command line argument, add 4 to the pointer, and have our process name. We decided it was okay to kill our sibling processes aslong as we did it quickly. Again, the simplest solution proved the most affective in the arena. 
+
+We believe that we will score very highly in both arena 1 and arena 2 during grading. We have tested both of our executables against the provided programs several times. It is very rare that we do not recieve 100, but about every 1 in 30 tries our program loses. This might be due to the order in which the programs are loaded, because just like real life, there is a fair amount of luck in the arena. 
