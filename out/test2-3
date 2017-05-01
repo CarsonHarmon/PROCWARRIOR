@@ -1,0 +1,5 @@
+./malloc vs ./choi 10: 100.00
+./malloc vs ./choi 20: 100.00
+./malloc vs ./choi 30: 100.00
+./malloc vs ./choi 40: 100.00
+./malloc vs ./choi 50: 100.00
